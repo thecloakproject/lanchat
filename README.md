@@ -44,7 +44,9 @@ Similar to the above, except you may want to accept many TCP/telnet clients:
 
 * Clients should call `os.Exit(1)` when they disconnect from the server
 
-* Create crypto helper repo for thecloakproject
+* Decide whether to merge LanChat, MailChat, and/or CloakCast into CloakChat
+
+* Create crypto helper repo
 
   * Add AES{EncryptDecrypt}Bytes, PadBytes
 
@@ -53,3 +55,7 @@ Similar to the above, except you may want to accept many TCP/telnet clients:
   * Use these functions in LanChat and Vaporizer
 
   * Consider calling it `github.com/thecloakproject/helpers/crypt`
+
+* Create server helper repo
+
+  * Include `TCPServer`
