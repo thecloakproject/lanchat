@@ -10,7 +10,6 @@ import (
 	"crypto/cipher"
 	"flag"
 	"fmt"
-	"github.com/elimisteve/fun"
 	"io"
 	"log"
 	"net"
@@ -109,9 +108,13 @@ func main() {
 func TCPServer(listenIPandPort string, maxConns int, handler func(net.Conn)) {
 	// Create TCP connection listener
 	tcpAddr, err := net.ResolveTCPAddr("tcp4", listenIPandPort)
-	fun.MaybeFatalAt("net.ResolveTCPAddr", err)
+	if err != nil {
+		panic("Error calling net.ResolveTCPAddr: " + err.Error())
+	}
 	listener, err := net.ListenTCP("tcp", tcpAddr)
-	fun.MaybeFatalAt("net.ListenTCP", err)
+	if err != nil {
+		panic("Error calling net.ListenTCP: " + err.Error())
+	}
 
 	if DEBUG {
 		log.Printf("%s maxConns == %d\n", listenIPandPort, maxConns)
