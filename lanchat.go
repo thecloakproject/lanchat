@@ -20,10 +20,7 @@ import (
 )
 
 const (
-	DEFAULT_LISTEN_IP         = "localhost"
-	DEFAULT_LISTEN_PORT       = "9999"  // TODO: Make this a common-ish port
-	DEFAULT_LOCAL_LISTEN_PORT = "10000" // Used by all users
-	MAX_MESSAGE_SIZE          = 8192
+	MAX_MESSAGE_SIZE = 8192
 )
 
 var (
@@ -34,9 +31,10 @@ var (
 var (
 	RemoteListenIP = flag.String("listen-ip", "0.0.0.0",
 		"IP/hostname to listen for remote connections on")
-	RemoteListenPort = flag.String("port", DEFAULT_LISTEN_PORT,
+	// TODO: Make this a common-ish port
+	RemoteListenPort = flag.String("port", "9999",
 		"Port to listen on for remote connections (if acting as server)")
-	LocalListenPort = flag.String("local-port", DEFAULT_LOCAL_LISTEN_PORT,
+	LocalListenPort = flag.String("local-port", "10000",
 		"Port to listen on for local connections")
 	Protocol    = flag.String("proto", "tcp", "Protocol options: tcp, ws")
 	ActAsServer = flag.Bool("serve", false, "Act as server?")
