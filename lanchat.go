@@ -123,6 +123,11 @@ func TCPServer(listenIPandPort string, maxConns int, handler func(net.Conn)) {
 	listener, err := net.ListenTCP("tcp", tcpAddr)
 	fun.MaybeFatalAt("net.ListenTCP", err)
 
+	if DEBUG {
+		log.Printf("%s maxConns == %d\n", listenIPandPort, maxConns)
+	}
+
+	// Semaphore
 	activeConns := make(chan int, maxConns)
 
 	for {
@@ -136,28 +141,21 @@ func TCPServer(listenIPandPort string, maxConns int, handler func(net.Conn)) {
 
 		// Accept new connections
 		conn, err := listener.Accept()
+		if err != nil {
+			log.Printf("TCPServer: Error accepting TCP traffic: %v", err)
+			<-activeConns
+			continue
+		}
 		if DEBUG {
 			log.Printf("New connection: %s\n", conn.RemoteAddr())
 		}
-		if err != nil {
-			log.Printf("RemoteTCPServer: Error accepting TCP traffic: %v", err)
-			<-activeConns
-			if DEBUG {
-				log.Printf("activeConns drained by 1\n")
-			}
-			continue
-		}
-
+		// Handle
 		go func() {
 			handler(conn)
 			if DEBUG {
 				log.Printf("handler for %s returned\n", conn.RemoteAddr())
 			}
-
 			<-activeConns
-			if DEBUG {
-				log.Printf("activeConns drained by 1\n")
-			}
 		}()
 	}
 }
