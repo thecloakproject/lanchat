@@ -15,7 +15,6 @@ import (
 	"log"
 	"net"
 	"os"
-	"strings"
 	"time"
 )
 
@@ -31,17 +30,17 @@ var (
 var (
 	// TODO: Make this a common-ish port
 	RemoteListen = flag.String("listen", "0.0.0.0:9999",
-		"ip:port to listen on for remote connections")
+		"IP:Port to listen on for remote connections (use with -serve)")
 	LocalListenPort = flag.String("local-port", "10000",
 		"Port to listen on for local connections")
-	Protocol    = flag.String("proto", "tcp", "Protocol options: tcp, ws")
+	Protocol    = flag.String("proto", "tcp", "Protocol options: tcp")
 	ActAsServer = flag.Bool("serve", false, "Act as server?")
 	Server      = flag.String("server", "",
-		"ip:port of remote server to connect to (used when '-serve' not used)")
+		"IP:Port of remote server to connect to (used when -serve isn't)")
 	MaxRemoteConns = flag.Int("conns", 1,
 		"Maximum simultaneous remote connections allowed")
 	MaxLocalConns = flag.Int("local-conns", 1,
-		"Maximum simultaneous remote connections allowed")
+		"Maximum simultaneous local connections allowed")
 
 	DEBUG = false
 )
@@ -79,14 +78,10 @@ func main() {
 	// Listen for changes to the routing table
 	go connList.Listen()
 
-	// If this client is acting as the server, spawn server
+	// If this client is acting as the server, spawn a server, otherwise spawn
+	// a bridge between the remote server and local TCP connections
 	if *ActAsServer {
-		remoteServer := TCPServer
-		if strings.ToLower(*Protocol) == "ws" {
-			remoteServer = RemoteWSServer
-		}
-		// `server` must be of type `func(string, string, int)`
-		go remoteServer(*RemoteListen, *MaxRemoteConns, RemoteConnHandler)
+		go TCPServer(*RemoteListen, *MaxRemoteConns, RemoteConnHandler)
 	} else if *Server == "" {
 		// If this isn't the server and no server specified...
 		fmt.Printf("Must specify server ip:port ('-server xx.yy.zz.ww:9999)'\n")
@@ -107,11 +102,6 @@ func main() {
 		log.Printf("Servers started. Blocking...\n")
 	}
 	select {}
-}
-
-func RemoteWSServer(listenIPandPort string, maxConns int, handler func(net.Conn)) {
-	fmt.Printf("Not implemented! Choose '-proto tcp' for now\n")
-	os.Exit(0)
 }
 
 // TCPServer creates a TCP server to listen for remote connections and
@@ -282,7 +272,7 @@ func TCPBridge(serverIPandPort string) {
 }
 
 //
-// Add to github.com/thecloakproject/helpers/crypt then import accordingly
+// TODO: Add to github.com/thecloakproject/helpers/crypt then import accordingly
 //
 
 func aesEncryptBytes(block cipher.Block, data []byte) ([]byte, error) {
