@@ -81,12 +81,12 @@ func main() {
 
 	// If this client is acting as the server, spawn server
 	if *ActAsServer {
-		remoteServer := RemoteTCPServer
+		remoteServer := TCPServer
 		if strings.ToLower(*Protocol) == "ws" {
 			remoteServer = RemoteWSServer
 		}
 		// `server` must be of type `func(string, string, int)`
-		go remoteServer(*RemoteListen, *MaxRemoteConns)
+		go remoteServer(*RemoteListen, *MaxRemoteConns, RemoteConnHandler)
 	} else if *Server == "" {
 		// If this isn't the server and no server specified...
 		fmt.Printf("Must specify server ip:port ('-server xx.yy.zz.ww:9999)'\n")
@@ -96,7 +96,8 @@ func main() {
 	}
 
 	// Open port for local telnet client
-	go LocalTCPServer(*LocalListenPort, *MaxLocalConns)
+	go TCPServer("localhost:" + *LocalListenPort, *MaxLocalConns,
+		LocalConnHandler)
 
 	// Give user command
 	fmt.Printf("\nNow run\n\n    telnet localhost %s\n\n", *LocalListenPort)
@@ -108,21 +109,21 @@ func main() {
 	select {}
 }
 
-func RemoteWSServer(listenIPandPort string, maxConns int) {
+func RemoteWSServer(listenIPandPort string, maxConns int, handler func(net.Conn)) {
 	fmt.Printf("Not implemented! Choose '-proto tcp' for now\n")
 	os.Exit(0)
 }
 
-// RemoteTCPServer creates a TCP server to listen for remote connections and
-// pass them to RemoteConnHandler. Used when *ActAsServer == true.
-func RemoteTCPServer(listenIPandPort string, maxConns int) {
+// TCPServer creates a TCP server to listen for remote connections and
+// pass them to the given handler
+func TCPServer(listenIPandPort string, maxConns int, handler func(net.Conn)) {
 	// Create TCP connection listener
 	tcpAddr, err := net.ResolveTCPAddr("tcp4", listenIPandPort)
 	fun.MaybeFatalAt("net.ResolveTCPAddr", err)
 	listener, err := net.ListenTCP("tcp", tcpAddr)
 	fun.MaybeFatalAt("net.ListenTCP", err)
 
-	activeRemoteConns := make(chan int, maxConns)
+	activeConns := make(chan int, maxConns)
 
 	// Accept new TCP connections forever
 	for {
@@ -134,21 +135,19 @@ func RemoteTCPServer(listenIPandPort string, maxConns int) {
 		// Every time someone connects, spawn goroutine that handles the
 		// connection once the number of connections <= maxConns
 		go func() {
+			activeConns <- 1
 			if DEBUG {
-				log.Printf("Adding 1 to activeRemoteConns...\n")
+				log.Printf("Added 1 to semaphore. Calling handler\n")
 			}
-			activeRemoteConns <- 1
+
+			handler(conn)
 			if DEBUG {
-				log.Printf("Added 1 to semaphore. Calling RemoteConnHandler\n")
+				log.Printf("handler for %s returned\n", conn.RemoteAddr())
 			}
-			RemoteConnHandler(conn)
+
+			<-activeConns
 			if DEBUG {
-				log.Printf("RemoteConnHandler for %s returned\n",
-					conn.RemoteAddr())
-			}
-			<-activeRemoteConns
-			if DEBUG {
-				log.Printf("activeRemoteConns drained by 1\n")
+				log.Printf("activeConns drained by 1\n")
 			}
 		}()
 	}
@@ -205,32 +204,6 @@ func RemoteConnHandler(conn net.Conn) {
 		// Print to screen of the form `[timestamp] remoteIP: Message`
 		now := time.Now().Format(time.Kitchen)
 		fmt.Printf("[%s] %s: %s\n", now, conn.RemoteAddr(), plaintext)
-	}
-}
-
-// LocalTCPServer accepts new TCP connections from local users (who connect via
-// telnet) and passes it to LocalConnHandler. Maximum number of simultaneous
-// connections: one.
-func LocalTCPServer(listenPort string) {
-	// Create TCP connection listener
-	addr := "localhost:" + listenPort
-	tcpAddr, err := net.ResolveTCPAddr("tcp4", addr)
-	fun.MaybeFatalAt("net.ResolveTCPAddr", err)
-	listener, err := net.ListenTCP("tcp", tcpAddr)
-	fun.MaybeFatalAt("net.ListenTCP", err)
-
-	// Accept new TCP connections forever
-	for {
-		conn, err := listener.Accept()
-		if err != nil {
-			log.Printf("LocalTCPServer: Error accepting TCP traffic: %v", err)
-			continue
-		}
-		// Only accept 1 connection at a time
-		if DEBUG {
-			log.Printf("New local TCP connection: %s\n", conn.RemoteAddr())
-		}
-		LocalConnHandler(conn)
 	}
 }
 
