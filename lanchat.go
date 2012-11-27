@@ -27,7 +27,7 @@ const (
 )
 
 var (
-	SharedSecret = ""
+	SharedSecret = "go run lanchat.go -serve -conns "
 )
 
 // Define flags
@@ -66,17 +66,19 @@ func init() {
 }
 
 func main() {
-	// Prompt user for shared secret
+	// Prompt user for shared secret if not already given
 	// TODO: Use this to get password instead: http://code.google.com/p/go/source/browse/ssh/terminal/terminal.go?repo=crypto#430
-	fmt.Printf("AES shared secret (must be of length 16, 24, or 32): ")
-	// TODO: Remove length restriction (pad with zeroes or something)
-	line, err := bufio.NewReader(os.Stdin).ReadString('\n')
-	if err != nil {
-		log.Printf("Couldn't get secret from you: %v\n", err)
-		os.Exit(1)
+	if SharedSecret == "" {
+		fmt.Printf("AES shared secret (must be of length 16, 24, or 32): ")
+		// TODO: Remove length restriction (pad with zeroes or something)
+		line, err := bufio.NewReader(os.Stdin).ReadString('\n')
+		if err != nil {
+			log.Printf("Couldn't get secret from you: %v\n", err)
+			os.Exit(1)
+		}
+		// Exclude trailing newline
+		SharedSecret = line[:len(line)-1]
 	}
-	// Exclude trailing newline
-	SharedSecret = line[:len(line)-1]
 
 	// Listen for changes to the routing table
 	go connList.Listen()
@@ -135,16 +137,26 @@ func RemoteTCPServer(listenIP, listenPort string, maxConns int) {
 		// Every time someone connects, spawn goroutine that handles the
 		// connection once the number of connections <= maxConns
 		go func() {
+			if DEBUG { log.Printf("Adding 1 to activeRemoteConns...\n") }
 			activeRemoteConns <- 1
+			if DEBUG {
+				log.Printf("Added 1 to semaphore. Calling RemoteConnHandler\n")
+			}
 			RemoteConnHandler(conn)
+			if DEBUG {
+				log.Printf("RemoteConnHandler for %s returned\n",
+					conn.RemoteAddr())
+			}
 			<-activeRemoteConns
+			if DEBUG { log.Printf("activeRemoteConns drained by 1\n") }
 		}()
 	}
 }
 
 // RemoteConnHandler continuously reads an encrypted message from a remote user
 // (sent from his/her LanChat client), decrypts it, then prints it to the
-// terminal. Called by RemoteTCPServer, which is used when *ActAsServer == true.
+// terminal. Called by RemoteTCPServer, which is used when *ActAsServer == true,
+// and TCPBridge, which is used when *ActAsServer == false.
 func RemoteConnHandler(conn net.Conn) {
 	// New user connected; add their connection to routing table
 	connList.AddRemote <- conn
@@ -181,7 +193,7 @@ func RemoteConnHandler(conn net.Conn) {
 		}
 		// Print to screen of the form `[timestamp] remoteIP: Message`
 		now := time.Now().Format(time.Kitchen)
-		fmt.Printf("[%s] %s: %s", now, conn.RemoteAddr(), plaintext)
+		fmt.Printf("[%s] %s: %s\n", now, conn.RemoteAddr(), plaintext)
 	}
 }
 
@@ -245,7 +257,7 @@ func LocalConnHandler(conn net.Conn) {
 		}
 		// Print user input to screen
 		now := time.Now().Format(time.Kitchen)
-		fmt.Printf("[%s] %s: %s", now, conn.RemoteAddr(), plaintext[:n])
+		fmt.Printf("[%s] %s: %s\n", now, conn.RemoteAddr(), plaintext[:n])
 
 		plaintext = padBytes(plaintext[:n], encBlock.BlockSize())
 		ciphertext, err := aesEncryptBytes(encBlock, plaintext)
@@ -259,8 +271,7 @@ func LocalConnHandler(conn net.Conn) {
 	}
 }
 
-// TCPBridge continuously reads an encrypted message from a remote user
-// connected to the server, decrypts it, then prints it to the terminal. USED
+// TCPBridge connects to the given server, then calls RemoteConnHandler. Used
 // when *ActAsServer == false.
 func TCPBridge(serverIP, serverPort string) {
 	// Connect to server
@@ -276,6 +287,7 @@ func TCPBridge(serverIP, serverPort string) {
 //
 // Add to github.com/thecloakproject/helpers/crypt then import accordingly
 //
+
 func aesEncryptBytes(block cipher.Block, data []byte) ([]byte, error) {
 	blockSize := block.BlockSize()
 
@@ -314,7 +326,6 @@ func aesDecryptBytes(block cipher.Block, cipherBytes []byte) (plain []byte, err 
 	}()
 	
 	blockSize := block.BlockSize()
-	// cipherBytes = padBytes(cipherBytes, blockSize)
 	plain = make([]byte, len(cipherBytes))
 	for i := 0; i < len(cipherBytes); i += blockSize {
 		block.Decrypt(plain[i:i+blockSize], cipherBytes[i:i+blockSize])

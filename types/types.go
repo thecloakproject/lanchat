@@ -91,10 +91,13 @@ func (list *ConnList) Listen() {
 }
 
 // Delete the given net.Conn from the given []net.Conn
-func DeleteConn(connList []net.Conn, conn net.Conn) {
+func DeleteConn(connList []net.Conn, c net.Conn) {
 	for ndx, _ := range connList {
-		if connList[ndx] == conn {
+		if connList[ndx] == c {
 			connList = append(connList[:ndx], connList[ndx+1:]...)
+			if DEBUG {
+				log.Printf("Removed %v from connList\n", c.RemoteAddr())
+			}
 			break
 		}
 	}
