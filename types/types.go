@@ -19,16 +19,16 @@ type Cipherstore struct {
 }
 
 type ConnList struct {
-	locals   []net.Conn
-	AddLocal chan net.Conn
+	locals      []net.Conn
+	AddLocal    chan net.Conn
 	DeleteLocal chan net.Conn
 
-	remotes   []net.Conn
-	AddRemote chan net.Conn
+	remotes      []net.Conn
+	AddRemote    chan net.Conn
 	DeleteRemote chan net.Conn
 
 	WriteToRemotes chan *Cipherstore
-	writeErrors chan string
+	writeErrors    chan string
 }
 
 func (list *ConnList) Listen() {
@@ -39,7 +39,9 @@ func (list *ConnList) Listen() {
 	}()
 
 	for {
-		if DEBUG { log.Printf("Listen() waiting for new event...\n") }
+		if DEBUG {
+			log.Printf("Listen() waiting for new event...\n")
+		}
 		select {
 		// Handle local connection changes
 		case conn := <-list.AddLocal:

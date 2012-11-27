@@ -4,6 +4,7 @@
 package main
 
 import (
+	"./types"
 	"bufio"
 	"crypto/aes"
 	"crypto/cipher"
@@ -16,14 +17,13 @@ import (
 	"os"
 	"strings"
 	"time"
-	"./types"
 )
 
 const (
-	DEFAULT_LISTEN_IP   = "localhost"
-	DEFAULT_LISTEN_PORT = "9999" // TODO: Make this a common-ish port
+	DEFAULT_LISTEN_IP         = "localhost"
+	DEFAULT_LISTEN_PORT       = "9999"  // TODO: Make this a common-ish port
 	DEFAULT_LOCAL_LISTEN_PORT = "10000" // Used by all users
-	MAX_MESSAGE_SIZE = 8192
+	MAX_MESSAGE_SIZE          = 8192
 )
 
 var (
@@ -38,9 +38,9 @@ var (
 		"Port to listen on for remote connections (if acting as server)")
 	LocalListenPort = flag.String("local-port", DEFAULT_LOCAL_LISTEN_PORT,
 		"Port to listen on for local connections")
-	Protocol = flag.String("proto", "tcp", "Protocol options: tcp, ws")
+	Protocol    = flag.String("proto", "tcp", "Protocol options: tcp, ws")
 	ActAsServer = flag.Bool("serve", false, "Act as server?")
-	ServerIP = flag.String("server-ip", "",
+	ServerIP    = flag.String("server-ip", "",
 		"IP of remote server to connect to (used when '-serve' not used)")
 	ServerPort = flag.String("server-port", "",
 		"Port of remote server to connect to (used when '-serve' not used)")
@@ -51,17 +51,17 @@ var (
 )
 
 var connList = types.ConnList{
-	AddLocal:  make(chan net.Conn),
-	DeleteLocal:  make(chan net.Conn),
-	AddRemote: make(chan net.Conn),
-	DeleteRemote:  make(chan net.Conn),
+	AddLocal:       make(chan net.Conn),
+	DeleteLocal:    make(chan net.Conn),
+	AddRemote:      make(chan net.Conn),
+	DeleteRemote:   make(chan net.Conn),
 	WriteToRemotes: make(chan *types.Cipherstore),
 }
 
 func init() {
 	types.DEBUG = false
 	flag.BoolVar(&DEBUG, "debug", DEBUG,
-			"Enable debug mode for verbose terminal messages")
+		"Enable debug mode for verbose terminal messages")
 	flag.Parse()
 }
 
@@ -106,8 +106,10 @@ func main() {
 	fmt.Printf("\nNow run\n\n    telnet localhost %s\n\n", *LocalListenPort)
 
 	// Block forever
-	if DEBUG { log.Printf("Servers started. Blocking...\n") }
-	select{}
+	if DEBUG {
+		log.Printf("Servers started. Blocking...\n")
+	}
+	select {}
 }
 
 func RemoteWSServer(listenIP, listenPort string, maxConns int) {
@@ -137,7 +139,9 @@ func RemoteTCPServer(listenIP, listenPort string, maxConns int) {
 		// Every time someone connects, spawn goroutine that handles the
 		// connection once the number of connections <= maxConns
 		go func() {
-			if DEBUG { log.Printf("Adding 1 to activeRemoteConns...\n") }
+			if DEBUG {
+				log.Printf("Adding 1 to activeRemoteConns...\n")
+			}
 			activeRemoteConns <- 1
 			if DEBUG {
 				log.Printf("Added 1 to semaphore. Calling RemoteConnHandler\n")
@@ -148,7 +152,9 @@ func RemoteTCPServer(listenIP, listenPort string, maxConns int) {
 					conn.RemoteAddr())
 			}
 			<-activeRemoteConns
-			if DEBUG { log.Printf("activeRemoteConns drained by 1\n") }
+			if DEBUG {
+				log.Printf("activeRemoteConns drained by 1\n")
+			}
 		}()
 	}
 }
@@ -247,7 +253,9 @@ func LocalConnHandler(conn net.Conn) {
 	}()
 
 	// Create new cipher.Block
-	if DEBUG { log.Printf("Using shared secret '%s'\n", SharedSecret) }
+	if DEBUG {
+		log.Printf("Using shared secret '%s'\n", SharedSecret)
+	}
 	encBlock, err := aes.NewCipher([]byte(SharedSecret))
 	if err != nil {
 		fmt.Printf("Error creating AES cipher for encryption: %v\n", err)
@@ -256,7 +264,9 @@ func LocalConnHandler(conn net.Conn) {
 	plaintext := make([]byte, MAX_MESSAGE_SIZE)
 	cipherstore := &types.Cipherstore{}
 	for {
-		if DEBUG { log.Printf("Listening for new message...\n") }
+		if DEBUG {
+			log.Printf("Listening for new message...\n")
+		}
 		n, err := conn.Read(plaintext)
 		if err != nil {
 			log.Printf("Error reading message from local conn %s: %v\n",
@@ -309,7 +319,7 @@ func aesEncryptBytes(block cipher.Block, data []byte) ([]byte, error) {
 	cipherBytes := make([]byte, length)
 	numBlocks := length / blockSize
 	// Add one more if there were bytes left over
-	if length % blockSize != 0 {
+	if length%blockSize != 0 {
 		numBlocks++
 	}
 
@@ -323,7 +333,7 @@ func aesEncryptBytes(block cipher.Block, data []byte) ([]byte, error) {
 
 func padBytes(data []byte, blockSize int) []byte {
 	// Add padding (originally for correctness, now for simplicity)
-	for len(data) % blockSize != 0 {
+	for len(data)%blockSize != 0 {
 		data = append(data, 0x0)
 	}
 	return data
@@ -337,7 +347,7 @@ func aesDecryptBytes(block cipher.Block, cipherBytes []byte) (plain []byte, err 
 			err = fmt.Errorf("%v", e)
 		}
 	}()
-	
+
 	blockSize := block.BlockSize()
 	plain = make([]byte, len(cipherBytes))
 	for i := 0; i < len(cipherBytes); i += blockSize {
