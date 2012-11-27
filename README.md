@@ -23,6 +23,33 @@ then follow the provided instructions.
 
 ### Testing
 
-When testing with multiple local clients, you may want to run
+#### Local Testing
+
+If the server is already running on `localhost` (and therefore using port 10000
+for its own TCP or telnet clients), choose a different local port to listen on:
 
     go run lanchat.go -local-port 10001 -server localhost:9999
+
+
+#### Multiple, Concurrent Local Clients
+
+Similar to the above, except you may want to accept many TCP/telnet clients:
+
+    go run lanchat.go -local-port 10001 -local-conns 5 -server localhost:9999
+
+
+## TODO
+
+* Remove weird restrictions on `SharedSecret` length
+
+* Clients should call `os.Exit(1)` when they disconnect from the server
+
+* Create crypto helper repo for thecloakproject
+
+  * Add AES{EncryptDecrypt}Bytes, PadBytes
+
+    * Consider adding Gob{Encode,Decode} functions
+
+  * Use these functions in LanChat and Vaporizer
+
+  * Consider calling it `github.com/thecloakproject/helpers/crypt`
