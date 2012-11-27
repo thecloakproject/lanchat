@@ -29,19 +29,15 @@ var (
 
 // Define flags
 var (
-	RemoteListenIP = flag.String("listen-ip", "0.0.0.0",
-		"IP/hostname to listen for remote connections on")
 	// TODO: Make this a common-ish port
-	RemoteListenPort = flag.String("port", "9999",
-		"Port to listen on for remote connections (if acting as server)")
+	RemoteListen = flag.String("listen", "0.0.0.0:9999",
+		"ip:port to listen on for remote connections")
 	LocalListenPort = flag.String("local-port", "10000",
 		"Port to listen on for local connections")
 	Protocol    = flag.String("proto", "tcp", "Protocol options: tcp, ws")
 	ActAsServer = flag.Bool("serve", false, "Act as server?")
-	ServerIP    = flag.String("server-ip", "",
-		"IP of remote server to connect to (used when '-serve' not used)")
-	ServerPort = flag.String("server-port", "",
-		"Port of remote server to connect to (used when '-serve' not used)")
+	Server = flag.String("server", "",
+		"ip:port of remote server to connect to (used when '-serve' not used)")
 	MaxRemoteConns = flag.Int("conns", 1,
 		"Maximum simultaneous remote connections allowed")
 
@@ -88,13 +84,13 @@ func main() {
 			remoteServer = RemoteWSServer
 		}
 		// `server` must be of type `func(string, string, int)`
-		go remoteServer(*RemoteListenIP, *RemoteListenPort, *MaxRemoteConns)
-	} else if *ServerIP == "" {
+		go remoteServer(*RemoteListen, *MaxRemoteConns)
+	} else if *Server == "" {
 		// If this isn't the server and no server specified...
 		fmt.Printf("Must specify server IP with '-server-ip xx.yy.zz.ww'\n")
 		os.Exit(1)
 	} else {
-		go TCPBridge(*ServerIP, *ServerPort)
+		go TCPBridge(*Server)
 	}
 
 	// Open port for local telnet client
@@ -110,17 +106,16 @@ func main() {
 	select {}
 }
 
-func RemoteWSServer(listenIP, listenPort string, maxConns int) {
+func RemoteWSServer(listenIPandPort string, maxConns int) {
 	fmt.Printf("Not implemented! Choose '-proto tcp' for now\n")
 	os.Exit(0)
 }
 
 // RemoteTCPServer creates a TCP server to listen for remote connections and
 // pass them to RemoteConnHandler. Used when *ActAsServer == true.
-func RemoteTCPServer(listenIP, listenPort string, maxConns int) {
+func RemoteTCPServer(listenIPandPort string, maxConns int) {
 	// Create TCP connection listener
-	addr := listenIP + ":" + listenPort
-	tcpAddr, err := net.ResolveTCPAddr("tcp4", addr)
+	tcpAddr, err := net.ResolveTCPAddr("tcp4", listenIPandPort)
 	fun.MaybeFatalAt("net.ResolveTCPAddr", err)
 	listener, err := net.ListenTCP("tcp", tcpAddr)
 	fun.MaybeFatalAt("net.ListenTCP", err)
@@ -294,12 +289,11 @@ func LocalConnHandler(conn net.Conn) {
 
 // TCPBridge connects to the given server, then calls RemoteConnHandler. Used
 // when *ActAsServer == false.
-func TCPBridge(serverIP, serverPort string) {
+func TCPBridge(serverIPandPort string) {
 	// Connect to server
-	serverInfo := serverIP + ":" + serverPort
-	conn, err := net.Dial("tcp", serverInfo)
+	conn, err := net.Dial("tcp", serverIPandPort)
 	if err != nil {
-		log.Printf("Couldn't connect to %s: %v\n", serverInfo, err)
+		log.Printf("Couldn't connect to %s: %v\n", serverIPandPort, err)
 		os.Exit(1)
 	}
 	RemoteConnHandler(conn)
