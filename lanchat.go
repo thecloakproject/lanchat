@@ -36,7 +36,7 @@ var (
 		"Port to listen on for local connections")
 	Protocol    = flag.String("proto", "tcp", "Protocol options: tcp, ws")
 	ActAsServer = flag.Bool("serve", false, "Act as server?")
-	Server = flag.String("server", "",
+	Server      = flag.String("server", "",
 		"ip:port of remote server to connect to (used when '-serve' not used)")
 	MaxRemoteConns = flag.Int("conns", 1,
 		"Maximum simultaneous remote connections allowed")
@@ -96,7 +96,7 @@ func main() {
 	}
 
 	// Open port for local telnet client
-	go TCPServer("localhost:" + *LocalListenPort, *MaxLocalConns,
+	go TCPServer("localhost:"+*LocalListenPort, *MaxLocalConns,
 		LocalConnHandler)
 
 	// Give user command
