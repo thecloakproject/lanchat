@@ -40,6 +40,8 @@ var (
 		"ip:port of remote server to connect to (used when '-serve' not used)")
 	MaxRemoteConns = flag.Int("conns", 1,
 		"Maximum simultaneous remote connections allowed")
+	MaxLocalConns = flag.Int("local-conns", 1,
+		"Maximum simultaneous remote connections allowed")
 
 	DEBUG = false
 )
@@ -87,14 +89,14 @@ func main() {
 		go remoteServer(*RemoteListen, *MaxRemoteConns)
 	} else if *Server == "" {
 		// If this isn't the server and no server specified...
-		fmt.Printf("Must specify server IP with '-server-ip xx.yy.zz.ww'\n")
+		fmt.Printf("Must specify server ip:port ('-server xx.yy.zz.ww:9999)'\n")
 		os.Exit(1)
 	} else {
 		go TCPBridge(*Server)
 	}
 
 	// Open port for local telnet client
-	go LocalTCPServer(*LocalListenPort)
+	go LocalTCPServer(*LocalListenPort, *MaxLocalConns)
 
 	// Give user command
 	fmt.Printf("\nNow run\n\n    telnet localhost %s\n\n", *LocalListenPort)
