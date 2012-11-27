@@ -23,7 +23,7 @@ const (
 )
 
 var (
-	SharedSecret = "go run lanchat.go -serve -conns "
+	SharedSecret = ""
 )
 
 // Define flags
