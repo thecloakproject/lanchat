@@ -55,7 +55,7 @@ var connList = types.ConnList{
 	DeleteLocal:  make(chan net.Conn),
 	AddRemote: make(chan net.Conn),
 	DeleteRemote:  make(chan net.Conn),
-	WriteToRemotes: make(chan []byte),
+	WriteToRemotes: make(chan *types.Cipherstore),
 }
 
 func init() {
@@ -175,6 +175,7 @@ func RemoteConnHandler(conn net.Conn) {
 		os.Exit(1)
 	}
 	ciphertext := make([]byte, MAX_MESSAGE_SIZE)
+	cipherstore := &types.Cipherstore{}
 	for {
 		n, err := conn.Read(ciphertext)
 		if err != nil {
@@ -182,9 +183,18 @@ func RemoteConnHandler(conn net.Conn) {
 				conn.RemoteAddr(), err)
 			if err == io.EOF {
 				break
+				// TODO: os.Exit(1) when disconnecting from _the_ server
 			}
 			continue
 		}
+		// Send message to other remote users
+		go func() {
+			cipherstore.Conn = conn
+			cipherstore.Data = ciphertext[:n]
+			connList.WriteToRemotes <- cipherstore
+		}()
+
+		// Decrypt
 		plaintext, err := aesDecryptBytes(decBlock, ciphertext[:n])
 		if err != nil {
 			log.Printf("Error decrypting '%v' ('%s'): %v\n",
@@ -244,6 +254,7 @@ func LocalConnHandler(conn net.Conn) {
 		os.Exit(1)
 	}
 	plaintext := make([]byte, MAX_MESSAGE_SIZE)
+	cipherstore := &types.Cipherstore{}
 	for {
 		if DEBUG { log.Printf("Listening for new message...\n") }
 		n, err := conn.Read(plaintext)
@@ -266,7 +277,9 @@ func LocalConnHandler(conn net.Conn) {
 			continue
 		}
 		go func() {
-			connList.WriteToRemotes <- ciphertext
+			cipherstore.Conn = conn
+			cipherstore.Data = ciphertext
+			connList.WriteToRemotes <- cipherstore
 		}()
 	}
 }

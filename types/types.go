@@ -13,6 +13,11 @@ var (
 	DEBUG = false
 )
 
+type Cipherstore struct {
+	Conn net.Conn
+	Data []byte
+}
+
 type ConnList struct {
 	locals   []net.Conn
 	AddLocal chan net.Conn
@@ -22,7 +27,7 @@ type ConnList struct {
 	AddRemote chan net.Conn
 	DeleteRemote chan net.Conn
 
-	WriteToRemotes chan []byte
+	WriteToRemotes chan *Cipherstore
 	writeErrors chan string
 }
 
@@ -65,26 +70,29 @@ func (list *ConnList) Listen() {
 			DeleteConn(list.remotes, conn)
 
 		// Handle writing to remote connections
-		case ciphertext := <-list.WriteToRemotes:
+		case cipherstore := <-list.WriteToRemotes:
 			if DEBUG {
 				log.Printf("Writing '%v' ('%s') to remotes\n",
-					ciphertext, ciphertext)
+					cipherstore.Data, cipherstore.Data)
 			}
 			for _, rc := range list.remotes {
-				go func(c net.Conn) {
-					if DEBUG {
-						log.Printf("Writing '%v' to %s\n", ciphertext,
-							c.RemoteAddr())
-					}
-					_, err := c.Write(ciphertext)
-					if err != nil {
-						errStr := "Error writing ciphertext to %s: %v\n"
-						errStr = fmt.Sprintf(errStr, c.RemoteAddr(), err)
-						list.writeErrors <- errStr
-						DeleteConn(list.remotes, c)
-						fmt.Printf("%s removed from connList\n", c.RemoteAddr())
-					}
-				}(rc)
+				if rc != cipherstore.Conn {
+					go func(c net.Conn) {
+						if DEBUG {
+							log.Printf("Writing '%v' to %s\n",
+								cipherstore.Data, c.RemoteAddr())
+						}
+						_, err := c.Write(cipherstore.Data)
+						if err != nil {
+							errStr := "Error writing ciphertext to %s: %v\n"
+							errStr = fmt.Sprintf(errStr, c.RemoteAddr(), err)
+							list.writeErrors <- errStr
+							DeleteConn(list.remotes, c)
+							fmt.Printf("%s removed from connList\n",
+								c.RemoteAddr())
+						}
+					}(rc)
+				}
 			}
 		}
 	}
