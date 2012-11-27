@@ -32,9 +32,11 @@ var (
 		"IP:Port to listen on for remote connections (use with -serve)")
 	LocalListenPort = flag.String("local-port", "10000",
 		"Port to listen on for local connections")
-	Protocol    = flag.String("proto", "tcp", "Protocol options: tcp")
-	ActAsServer = flag.Bool("serve", false, "Act as server?")
-	Server      = flag.String("server", "",
+	Protocol = flag.String("proto", "tcp",
+		"Protocol options: tcp")
+	ActAsServer = flag.Bool("serve", false,
+		"Act as server?")
+	Server = flag.String("server", "",
 		"IP:Port of remote server to connect to (used when -serve isn't)")
 	MaxRemoteConns = flag.Int("conns", 1,
 		"Maximum simultaneous remote connections allowed")
