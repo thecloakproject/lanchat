@@ -32,7 +32,7 @@ var (
 
 // Define flags
 var (
-	RemoteListenIP = flag.String("listen-ip", DEFAULT_LISTEN_IP,
+	RemoteListenIP = flag.String("listen-ip", "0.0.0.0",
 		"IP/hostname to listen for remote connections on")
 	RemoteListenPort = flag.String("port", DEFAULT_LISTEN_PORT,
 		"Port to listen on for remote connections (if acting as server)")
