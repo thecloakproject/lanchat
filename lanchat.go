@@ -15,6 +15,7 @@ import (
 	"net"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -85,6 +86,11 @@ func main() {
 	// If this client is acting as the server, spawn a server, otherwise spawn
 	// a bridge between the remote server and local TCP connections
 	if *ActAsServer {
+		remoteIPandPort := strings.Split(*RemoteListen, ":")
+		// Everything after last :
+		remotePort := remoteIPandPort[len(remoteIPandPort)-1]
+		fmt.Printf("\nTell your friend to connect to your IP on port %s\n",
+			remotePort)
 		go TCPServer(*RemoteListen, *MaxRemoteConns, RemoteConnHandler)
 	} else if *Server == "" {
 		// If this isn't the server and no server specified...
