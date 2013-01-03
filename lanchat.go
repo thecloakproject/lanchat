@@ -96,25 +96,21 @@ func main() {
 
 	// Open port for local telnet client
 	go func() {
-		// Give user command
-		fmt.Printf("\nNow run\n\n    telnet localhost %s\n\n", *LocalListenPort)
-		err := TCPServer("localhost:"+*LocalListenPort, *MaxLocalConns,
-			LocalConnHandler)
-		// If server fails
-		if err != nil {
-			e := IncrementString(LocalListenPort)
-			if e != nil {
-				panic(fmt.Sprintf("Error converting %s to int: %v\n",
-					LocalListenPort, e))
+		err := fmt.Errorf("Non-nil error")
+		// Try listening on new port until it works, or fails 10 times
+		for attempts := 0; err != nil && attempts < 10; attempts++ {
+			// Give user command
+			if attempts != 0 {
+				fmt.Printf("Just kidding!")
 			}
-			fmt.Printf("\nJust kidding! Run this instead:\n\n    ")
-			fmt.Printf("telnet localhost %s\n\n\n",	*LocalListenPort)
+			fmt.Printf("\nNow run\n\n    telnet localhost %s\n\n",
+				*LocalListenPort)
+			err = TCPServer("localhost:"+*LocalListenPort, *MaxLocalConns,
+				LocalConnHandler)
+			IncrementString(LocalListenPort)
 		}
-		err = TCPServer("localhost:"+*LocalListenPort, *MaxLocalConns,
-			LocalConnHandler)
-		if err != nil {
-			panic("Error calling TCPServer the 2nd time: " + err.Error())
-		}
+		panic(fmt.Sprintf("Error converting %s to int: %v\n",
+			LocalListenPort, err))
 	}()
 
 	// Block forever
