@@ -164,9 +164,9 @@ func TCPServer(listenIPandPort string, maxConns int, handler func(net.Conn)) err
 			<-activeConns
 			continue
 		}
-		if DEBUG {
-			log.Printf("New connection: %s\n", conn.RemoteAddr())
-		}
+
+		log.Printf("\n* New connection: %s\n\n", conn.RemoteAddr())
+
 		// Handle
 		go func() {
 			handler(conn)
