@@ -13,7 +13,11 @@ var (
 	DEBUG = false
 )
 
+// Cipherstores store encrypted data to be sent to all remote
+// connections except the net.Conn stored in the `Conn` field.
 type Cipherstore struct {
+	// Conn is the sending connection, so we know who _not_ to send
+	// Data to
 	Conn net.Conn
 	Data []byte
 }
@@ -78,6 +82,7 @@ func (list *ConnList) Listen() {
 					cipherstore.Data, cipherstore.Data)
 			}
 			for _, rc := range list.remotes {
+				// Write to every connection... except itself!
 				if rc != cipherstore.Conn {
 					go func(c net.Conn) {
 						if DEBUG {
@@ -88,6 +93,9 @@ func (list *ConnList) Listen() {
 						if err != nil {
 							errStr := "Error writing ciphertext to %s: %v\n"
 							errStr = fmt.Sprintf(errStr, c.RemoteAddr(), err)
+							// Report error, then assume this
+							// connection won't magically heal itself
+							// and remove it from the connection list
 							list.writeErrors <- errStr
 							DeleteConn(list.remotes, c)
 							fmt.Printf("%s removed from connList\n",
