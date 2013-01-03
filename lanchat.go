@@ -14,10 +14,13 @@ import (
 	"log"
 	"net"
 	"os"
+	"strconv"
 	"time"
 )
 
 const (
+	// TODO: Does this really do anything? Seems like the block size
+	// is determining how messages get carved up...
 	MAX_MESSAGE_SIZE = 8192
 )
 
@@ -92,11 +95,27 @@ func main() {
 	}
 
 	// Open port for local telnet client
-	go TCPServer("localhost:"+*LocalListenPort, *MaxLocalConns,
-		LocalConnHandler)
-
-	// Give user command
-	fmt.Printf("\nNow run\n\n    telnet localhost %s\n\n", *LocalListenPort)
+	go func() {
+		// Give user command
+		fmt.Printf("\nNow run\n\n    telnet localhost %s\n\n", *LocalListenPort)
+		err := TCPServer("localhost:"+*LocalListenPort, *MaxLocalConns,
+			LocalConnHandler)
+		// If server fails
+		if err != nil {
+			e := IncrementString(LocalListenPort)
+			if e != nil {
+				panic(fmt.Sprintf("Error converting %s to int: %v\n",
+					LocalListenPort, e))
+			}
+			fmt.Printf("\nJust kidding! Run this instead:\n\n    ")
+			fmt.Printf("telnet localhost %s\n\n\n",	*LocalListenPort)
+		}
+		err = TCPServer("localhost:"+*LocalListenPort, *MaxLocalConns,
+			LocalConnHandler)
+		if err != nil {
+			panic("Error calling TCPServer the 2nd time: " + err.Error())
+		}
+	}()
 
 	// Block forever
 	if DEBUG {
@@ -107,15 +126,15 @@ func main() {
 
 // TCPServer creates a TCP server to listen for remote connections and
 // pass them to the given handler
-func TCPServer(listenIPandPort string, maxConns int, handler func(net.Conn)) {
+func TCPServer(listenIPandPort string, maxConns int, handler func(net.Conn)) error {
 	// Create TCP connection listener
 	tcpAddr, err := net.ResolveTCPAddr("tcp4", listenIPandPort)
 	if err != nil {
-		panic("Error calling net.ResolveTCPAddr: " + err.Error())
+		return fmt.Errorf("Error calling net.ResolveTCPAddr: " + err.Error())
 	}
 	listener, err := net.ListenTCP("tcp", tcpAddr)
 	if err != nil {
-		panic("Error calling net.ListenTCP: " + err.Error())
+		return fmt.Errorf("Error calling net.ListenTCP: " + err.Error())
 	}
 
 	if DEBUG {
@@ -153,6 +172,7 @@ func TCPServer(listenIPandPort string, maxConns int, handler func(net.Conn)) {
 			<-activeConns
 		}()
 	}
+	return nil
 }
 
 // RemoteConnHandler continuously reads an encrypted message from a remote user
@@ -323,4 +343,17 @@ func aesDecryptBytes(block cipher.Block, cipherBytes []byte) (plain []byte, err 
 		block.Decrypt(plain[i:i+blockSize], cipherBytes[i:i+blockSize])
 	}
 	return plain, nil
+}
+
+func IncrementString(numStr *string) error {
+	if numStr == nil {
+		return fmt.Errorf("Can't turn `nil` into an int")
+	}
+	num, err := strconv.Atoi(*numStr)
+	if err != nil {
+		return fmt.Errorf("Error converting %s to int: %v", *numStr, err)
+	}
+	num++
+	*numStr = strconv.Itoa(num)
+	return nil
 }
