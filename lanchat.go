@@ -111,6 +111,8 @@ func main() {
 			}
 			fmt.Printf("\nNow run\n\n    telnet localhost %s\n\n",
 				*LocalListenPort)
+			fmt.Printf("Type into the telnet window and view the ")
+			fmt.Printf("full conversation in this one.\n\n")
 			err = TCPServer("localhost:"+*LocalListenPort, *MaxLocalConns,
 				LocalConnHandler)
 			IncrementString(LocalListenPort)
@@ -272,12 +274,15 @@ func LocalConnHandler(conn net.Conn) {
 		now := time.Now().Format(time.Kitchen)
 		fmt.Printf("[%s] %s: %s\n", now, conn.RemoteAddr(), plaintext[:n])
 
+		// Encrypt plaintext coming from local user over telnet
 		plaintext = padBytes(plaintext[:n], encBlock.BlockSize())
 		ciphertext, err := aesEncryptBytes(encBlock, plaintext)
 		if err != nil {
 			log.Printf("Error encrypting '%s': %v\n", plaintext, err)
 			continue
 		}
+		// Asynchronously write encrypted message to all remote
+		// connections
 		go func() {
 			cipherstore.Conn = conn
 			cipherstore.Data = ciphertext
