@@ -44,6 +44,8 @@ Similar to the above, except you may want to accept many TCP/telnet clients:
 
 * Clients should call `os.Exit(1)` when they disconnect from the server
 
+  * Better yet, try reconnecting, and say you're doing so
+
 * Decide whether to merge LanChat, MailChat, and/or CloakCast into CloakChat
 
 * Create crypto helper repo
@@ -59,3 +61,12 @@ Similar to the above, except you may want to accept many TCP/telnet clients:
 * Create server helper repo
 
   * Include `TCPServer`
+
+* 
+
+
+## Completed TODO
+
+* When a new user connects to your server, say so
+
+* 
