@@ -4,12 +4,12 @@
 package main
 
 import (
-	"./types"
 	"bufio"
 	"crypto/aes"
 	"crypto/cipher"
 	"flag"
 	"fmt"
+	"github.com/thecloakproject/lanchat/types"
 	"io"
 	"log"
 	"net"
