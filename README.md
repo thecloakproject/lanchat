@@ -62,7 +62,23 @@ Similar to the above, except you may want to accept many TCP/telnet clients:
 
   * Include `TCPServer`
 
-* 
+* Server should tell users how many others are connected when they connect
+
+  * Do the same after user has been idle for a while
+
+* Create "server pass-through mode"
+
+  * Server just relays encrypted messages back and forth, never sees the key
+
+  * Decide whether server should send unencrypted message saying len(conns)
+
+* Add padding
+
+  * Make all messages 50kb in length?
+
+* Add flocking
+
+  * Send message every second or two?
 
 
 ## Completed TODO
