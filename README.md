@@ -110,6 +110,15 @@ clients:
 
   * Do the same after user has been idle for a while
 
+* Add special instructions somewhere for those without Go installed
+
+  * How about on the GitHub wiki for The Cloak Project?
+
+* Make `MAX_MESSAGE_SIZE` a flag/command line option
+
+
+## Maybe-TODO
+
 * Create "server pass-through mode"
 
   * Server just relays encrypted messages back and forth, never sees the key
