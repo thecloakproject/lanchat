@@ -20,8 +20,6 @@ import (
 )
 
 const (
-	// TODO: Does this really do anything? Seems like the block size
-	// is determining how messages get carved up...
 	MAX_MESSAGE_SIZE = 1e6 // 1MB
 )
 
