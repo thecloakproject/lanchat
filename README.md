@@ -1,5 +1,40 @@
 # LanChat
 
+LanChat is an encrypted chat application for the paranoid
+
+## Why not just use Google Talk + Pidgin + OTR (Off-The-Record messaging)?
+
+Several reasons.
+
+1. Sending your private traffic across the internet and through
+   Google's servers is completely unnecessary, especially when the
+   person/people you're chatting with are nearby
+
+2. When you use such a 3rd party service, the company behind it knows
+   some combination of who you are, who you're communicating with, and
+   other information it makes no sense to disclose (e.g., when
+   communication occurs, how much traffic is sent, and other things
+   that could be used against you as part of advanced traffic
+   analysis).
+
+   This especially matters to us at The Cloak Project, as one of our
+   primary goals is to provide _ridiculously_ paranoid tools with
+   innovative security properties.
+
+   When it comes to 3rd parties, we aim to disclose nothing.
+
+3. LanChat is simpler. Thanks to how Go works, LanChat can be compiled
+   and stored as a single statically-linked binary -- just one file --
+   that assumes the existence of no special dependencies on the
+   computer running it (just OS and architecture).
+
+4. Due to its brevity, LanChat's code is much easier to read and
+   therefore audit than Pidgin's or that of other programs.
+
+
+## Current Features
+
+* AES-encrypted chat
 
 ## Example Usage
 
@@ -25,17 +60,20 @@ then follow the provided instructions.
 
 #### Local Testing
 
-If the server is already running on `localhost` (and therefore using port 10000
-for its own TCP or telnet clients), choose a different local port to listen on:
+If the server is already running on `localhost` (and therefore using
+port 10000 for its own TCP or telnet clients), choose a different
+local port to listen on:
 
     go run lanchat.go -local-port 10001 -server localhost:9999
 
 
 #### Multiple, Concurrent Local Clients
 
-Similar to the above, except you may want to accept many TCP/telnet clients:
+Similar to the above, except you may want to accept many TCP/telnet
+clients:
 
-    go run lanchat.go -local-port 10001 -local-conns 5 -server localhost:9999
+    go run lanchat.go -local-port 10001 -local-conns 5 -server
+    localhost:9999
 
 
 ## TODO
@@ -89,7 +127,7 @@ Similar to the above, except you may want to accept many TCP/telnet clients:
 * ...Remove embarrassing global variables...
 
 
-## Completed TODO
+## Completed TODO Items (cross 'em off!)
 
 * When a new user connects to your server, say so
 
