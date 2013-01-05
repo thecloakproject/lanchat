@@ -44,7 +44,7 @@ Similar to the above, except you may want to accept many TCP/telnet clients:
 
 * Clients should call `os.Exit(1)` when they disconnect from the server
 
-  * Better yet, try reconnecting, and say you're doing so
+  * Better yet, they should try reconnecting, and say they're so
 
 * Decide whether to merge LanChat, MailChat, and/or CloakCast into CloakChat
 
@@ -61,6 +61,12 @@ Similar to the above, except you may want to accept many TCP/telnet clients:
 * Create server helper repo
 
   * Include `TCPServer`
+
+* Rewrite `TCPServer` to return earlier
+
+  * Launch the major for loop in a goroutine, then return
+
+    * There is no significant, panic-worthy concern once that loop is reached
 
 * Server should tell users how many others are connected when they connect
 
@@ -80,9 +86,11 @@ Similar to the above, except you may want to accept many TCP/telnet clients:
 
   * Send message every second or two?
 
+* ...Remove embarrassing global variables...
+
 
 ## Completed TODO
 
 * When a new user connects to your server, say so
 
-* 
+* De-relativize `./types` package
