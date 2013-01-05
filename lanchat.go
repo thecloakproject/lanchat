@@ -229,7 +229,7 @@ func RemoteConnHandler(conn net.Conn) {
 		}
 		// Print to screen of the form `[timestamp] remoteIP: Message`
 		now := time.Now().Format(time.Kitchen)
-		fmt.Printf("[%s] %s: %s\n", now, conn.RemoteAddr(), plaintext)
+		fmt.Printf("[%s] %s: %s", now, conn.RemoteAddr(), plaintext)
 	}
 }
 
@@ -272,7 +272,7 @@ func LocalConnHandler(conn net.Conn) {
 		}
 		// Print user input to screen
 		now := time.Now().Format(time.Kitchen)
-		fmt.Printf("[%s] %s: %s\n", now, conn.RemoteAddr(), plaintext[:n])
+		fmt.Printf("[%s] %s: %s", now, conn.RemoteAddr(), plaintext[:n])
 
 		// Encrypt plaintext coming from local user over telnet
 		plaintext = padBytes(plaintext[:n], encBlock.BlockSize())
