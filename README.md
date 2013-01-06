@@ -10,6 +10,7 @@ Several reasons.
    Google's servers is completely unnecessary, especially when the
    person/people you're chatting with are nearby
 
+
 2. When you use such a 3rd party service, the company behind it knows
    some combination of who you are, who you're communicating with, and
    other information it makes no sense to disclose (e.g., when
@@ -23,10 +24,12 @@ Several reasons.
 
    When it comes to 3rd parties, we aim to disclose nothing.
 
+
 3. LanChat is simpler. Thanks to how Go works, LanChat can be compiled
    and stored as a single statically-linked binary -- just one file --
    that assumes the existence of no special dependencies on the
    computer running it (just OS and architecture).
+
 
 4. Due to its brevity, LanChat's code is much easier to read and
    therefore audit than Pidgin's or that of other programs.
@@ -42,16 +45,18 @@ Several reasons.
 
 If you're acting as the server, run the following:
 
-    go run lanchat.go -serve
+    lanchat -serve
 
-then follow the provided instructions.
+then follow the provided instructions. (If `lanchat` isn't installed
+but you've downloaded the source code, run `go run lanchat.go ...`
+instead of `lanchat ...`.)
 
 
 ### Client
 
 If someone else's set up the server and you're just connecting, run
 
-    go run lanchat.go -server 192.168.xx.yy:9999
+    lanchat -server 192.168.xx.yy:9999
 
 then follow the provided instructions.
 
@@ -72,8 +77,7 @@ local port to listen on:
 Similar to the above, except you may want to accept many TCP/telnet
 clients:
 
-    go run lanchat.go -local-port 10001 -local-conns 5 -server
-    localhost:9999
+    go run lanchat.go -local-port 10001 -local-conns 5 -server localhost:9999
 
 
 ## TODO
