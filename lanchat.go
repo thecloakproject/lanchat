@@ -228,7 +228,7 @@ func RemoteConnHandler(conn net.Conn) {
 		}
 		// Print to screen of the form `[timestamp] remoteIP: Message`
 		now := time.Now().Format(time.Kitchen)
-		fmt.Printf("[%s] %s: %s", now, conn.RemoteAddr(), plaintext)
+		fmt.Printf("[%s] %s: %s\n", now, conn.RemoteAddr(), plaintext)
 	}
 }
 
@@ -255,22 +255,34 @@ func LocalConnHandler(conn net.Conn) {
 		os.Exit(1)
 	}
 	cipherstore := &types.Cipherstore{}
+	var text []byte
+
+	r := bufio.NewReader(conn)
 	for {
-		if DEBUG {
-			log.Printf("Listening for new message...\n")
-		}
-		plaintext, err := bufio.NewReader(conn).ReadBytes('\n')
-		if err != nil {
-			log.Printf("Error reading message from local conn %s: %v\n",
-				conn.RemoteAddr(), err)
-			if err == io.EOF {
+		if DEBUG { log.Printf("Listening for new message...\n") }
+
+		plaintext := []byte{}
+		isPrefix := true
+
+		for isPrefix {
+			text, isPrefix, err = r.ReadLine()
+			if DEBUG { fmt.Printf("isPrefix == %v\n", isPrefix) }
+			if err != nil {
+				log.Printf("Error reading message from local conn %s: %v\n",
+					conn.RemoteAddr(), err)
+				if err == io.EOF {
+					fmt.Printf("Exiting RemoteConnHandler for %s\n",
+						conn.RemoteAddr())
+					return
+				}
 				break
 			}
-			continue
+			if DEBUG { fmt.Printf("text == %s\n", text) }
+			plaintext = append(plaintext, text...)
 		}
 		// Print user input to screen
 		now := time.Now().Format(time.Kitchen)
-		fmt.Printf("[%s] %s: %s", now, conn.RemoteAddr(), plaintext)
+		fmt.Printf("[%s] %s: %s\n", now, conn.RemoteAddr(), plaintext)
 
 		// Encrypt plaintext coming from local user over telnet
 		plaintext = padBytes(plaintext, encBlock.BlockSize())
