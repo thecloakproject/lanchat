@@ -254,13 +254,12 @@ func LocalConnHandler(conn net.Conn) {
 		fmt.Printf("Error creating AES cipher for encryption: %v\n", err)
 		os.Exit(1)
 	}
-	plaintext := make([]byte, MAX_MESSAGE_SIZE)
 	cipherstore := &types.Cipherstore{}
 	for {
 		if DEBUG {
 			log.Printf("Listening for new message...\n")
 		}
-		n, err := conn.Read(plaintext)
+		plaintext, err := bufio.NewReader(conn).ReadBytes('\n')
 		if err != nil {
 			log.Printf("Error reading message from local conn %s: %v\n",
 				conn.RemoteAddr(), err)
@@ -271,10 +270,10 @@ func LocalConnHandler(conn net.Conn) {
 		}
 		// Print user input to screen
 		now := time.Now().Format(time.Kitchen)
-		fmt.Printf("[%s] %s: %s", now, conn.RemoteAddr(), plaintext[:n])
+		fmt.Printf("[%s] %s: %s", now, conn.RemoteAddr(), plaintext)
 
 		// Encrypt plaintext coming from local user over telnet
-		plaintext = padBytes(plaintext[:n], encBlock.BlockSize())
+		plaintext = padBytes(plaintext, encBlock.BlockSize())
 		ciphertext, err := aesEncryptBytes(encBlock, plaintext)
 		if err != nil {
 			log.Printf("Error encrypting '%s': %v\n", plaintext, err)
@@ -347,7 +346,7 @@ func aesDecryptBytes(block cipher.Block, cipherBytes []byte) (plain []byte, err 
 	plain = make([]byte, len(cipherBytes))
 	for i := 0; i < len(cipherBytes); i += blockSize {
 		block.Decrypt(plain[i:i+blockSize], cipherBytes[i:i+blockSize])
-		if DEBUG { log.Printf("plain == %s\n", plain) }
+		if DEBUG { log.Printf("plain == %s", plain) }
 	}
 	return plain, nil
 }
