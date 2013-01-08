@@ -163,7 +163,7 @@ func TCPServer(listenIPandPort string, maxConns int, handler func(net.Conn)) err
 			continue
 		}
 
-		log.Printf("\n* New connection: %s\n\n", conn.RemoteAddr())
+		log.Printf("* New connection: %s\n\n", conn.RemoteAddr())
 
 		// Handle
 		go func() {
@@ -211,6 +211,7 @@ func RemoteConnHandler(conn net.Conn) {
 			}
 			continue
 		}
+		if DEBUG { log.Printf("ciphertext[:n] == %v\n", ciphertext[:n]) }
 		// Send message to other remote users
 		go func() {
 			cipherstore.Conn = conn
@@ -346,6 +347,7 @@ func aesDecryptBytes(block cipher.Block, cipherBytes []byte) (plain []byte, err 
 	plain = make([]byte, len(cipherBytes))
 	for i := 0; i < len(cipherBytes); i += blockSize {
 		block.Decrypt(plain[i:i+blockSize], cipherBytes[i:i+blockSize])
+		if DEBUG { log.Printf("plain == %s\n", plain) }
 	}
 	return plain, nil
 }
