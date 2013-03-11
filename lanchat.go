@@ -6,10 +6,10 @@ package main
 import (
 	"bufio"
 	"crypto/aes"
-	"crypto/cipher"
 	"flag"
 	"fmt"
 	"github.com/thecloakproject/lanchat/types"
+	"github.com/thecloakproject/utils/crypt"
 	"io"
 	"log"
 	"net"
@@ -220,7 +220,7 @@ func RemoteConnHandler(conn net.Conn) {
 		}()
 
 		// Decrypt
-		plaintext, err := aesDecryptBytes(decBlock, ciphertext[:n])
+		plaintext, err := crypt.AESDecryptBytes(decBlock, ciphertext[:n])
 		if err != nil {
 			log.Printf("Error decrypting '%v' ('%s'): %v\n",
 				ciphertext[:n], ciphertext[:n], err)
@@ -285,8 +285,7 @@ func LocalConnHandler(conn net.Conn) {
 		fmt.Printf("[%s] %s: %s\n", now, conn.RemoteAddr(), plaintext)
 
 		// Encrypt plaintext coming from local user over telnet
-		plaintext = padBytes(plaintext, encBlock.BlockSize())
-		ciphertext, err := aesEncryptBytes(encBlock, plaintext)
+		ciphertext, err := crypt.AESEncryptBytes(encBlock, plaintext)
 		if err != nil {
 			log.Printf("Error encrypting '%s': %v\n", plaintext, err)
 			continue
@@ -311,56 +310,6 @@ func TCPBridge(serverIPandPort string) {
 		os.Exit(1)
 	}
 	RemoteConnHandler(conn)
-}
-
-//
-// TODO: Add to github.com/thecloakproject/helpers/crypt then import accordingly
-//
-
-func aesEncryptBytes(block cipher.Block, data []byte) ([]byte, error) {
-	blockSize := block.BlockSize()
-
-	length := len(data)
-
-	cipherBytes := make([]byte, length)
-	numBlocks := length / blockSize
-	// Add one more if there were bytes left over
-	if length%blockSize != 0 {
-		numBlocks++
-	}
-
-	// Encrypt
-	for i := 0; i < length; i += blockSize {
-		block.Encrypt(cipherBytes[i:i+blockSize], data[i:i+blockSize])
-	}
-
-	return cipherBytes, nil
-}
-
-func padBytes(data []byte, blockSize int) []byte {
-	// Add padding (originally for correctness, now for simplicity)
-	for len(data)%blockSize != 0 {
-		data = append(data, 0x0)
-	}
-	return data
-}
-
-func aesDecryptBytes(block cipher.Block, cipherBytes []byte) (plain []byte, err error) {
-	defer func() {
-		if e := recover(); e != nil {
-			log.Printf("Panic from aesDecryptBytes: %v", e)
-			plain = nil
-			err = fmt.Errorf("%v", e)
-		}
-	}()
-
-	blockSize := block.BlockSize()
-	plain = make([]byte, len(cipherBytes))
-	for i := 0; i < len(cipherBytes); i += blockSize {
-		block.Decrypt(plain[i:i+blockSize], cipherBytes[i:i+blockSize])
-		if DEBUG { log.Printf("plain == %s", plain) }
-	}
-	return plain, nil
 }
 
 func IncrementString(numStr *string) error {

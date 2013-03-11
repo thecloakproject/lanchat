@@ -90,16 +90,6 @@ clients:
 
 * Decide whether to merge LanChat, MailChat, and/or CloakCast into CloakChat
 
-* Create crypto helper repo
-
-  * Add AES{EncryptDecrypt}Bytes, PadBytes
-
-    * Consider adding Gob{Encode,Decode} functions
-
-  * Use these functions in LanChat and Vaporizer
-
-  * Consider calling it `github.com/thecloakproject/helpers/crypt`
-
 * Create server helper repo
 
   * Include `TCPServer`
@@ -145,3 +135,14 @@ clients:
 * When a new user connects to your server, say so
 
 * De-relativize `./types` package
+
+* Create crypto helper repo
+
+  * Add AES{EncryptDecrypt}Bytes, PadBytes
+
+    * Consider adding Gob{Encode,Decode} functions
+
+  * (Use these functions in LanChat and Vaporizer)
+
+  * Consider calling it `github.com/thecloakproject/utils{,/crypt}`
+
