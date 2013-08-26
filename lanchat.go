@@ -203,12 +203,12 @@ func RemoteConnHandler(conn net.Conn) {
 	for {
 		n, err := conn.Read(ciphertext)
 		if err != nil {
-			log.Printf("Error reading message from remote conn %s: %v\n",
-				conn.RemoteAddr(), err)
 			if err == io.EOF {
 				break
 				// TODO: os.Exit(1) when disconnecting from _the_ server
 			}
+			log.Printf("Error reading message from remote conn %s: %v\n",
+				conn.RemoteAddr(), err)
 			continue
 		}
 		if DEBUG { log.Printf("ciphertext[:n] == %v\n", ciphertext[:n]) }
