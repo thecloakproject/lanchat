@@ -199,7 +199,6 @@ func RemoteConnHandler(conn net.Conn) {
 		os.Exit(1)
 	}
 	ciphertext := make([]byte, MAX_MESSAGE_SIZE)
-	cipherstore := &types.Cipherstore{}
 	for {
 		n, err := conn.Read(ciphertext)
 		if err != nil {
@@ -214,9 +213,7 @@ func RemoteConnHandler(conn net.Conn) {
 		if DEBUG { log.Printf("ciphertext[:n] == %v\n", ciphertext[:n]) }
 		// Send message to other remote users
 		go func() {
-			cipherstore.Conn = conn
-			cipherstore.Data = ciphertext[:n]
-			connList.WriteToRemotes <- cipherstore
+			connList.WriteToRemotes <- &types.Cipherstore{conn, ciphertext[:n]}
 		}()
 
 		// Decrypt
@@ -254,7 +251,6 @@ func LocalConnHandler(conn net.Conn) {
 		fmt.Printf("Error creating AES cipher for encryption: %v\n", err)
 		os.Exit(1)
 	}
-	cipherstore := &types.Cipherstore{}
 	var text []byte
 
 	r := bufio.NewReader(conn)
@@ -292,9 +288,7 @@ func LocalConnHandler(conn net.Conn) {
 		// Asynchronously write encrypted message to all remote
 		// connections
 		go func() {
-			cipherstore.Conn = conn
-			cipherstore.Data = ciphertext
-			connList.WriteToRemotes <- cipherstore
+			connList.WriteToRemotes <- &types.Cipherstore{conn, ciphertext}
 		}()
 	}
 }
