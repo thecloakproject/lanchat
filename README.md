@@ -110,6 +110,8 @@ clients:
 
 * Make `MAX_MESSAGE_SIZE` a flag/command line option
 
+* Always correctly report disconnections
+
 
 ## Maybe-TODO
 
