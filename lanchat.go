@@ -51,10 +51,10 @@ var (
 var connList = types.NewConnList()
 
 func init() {
-	types.DEBUG = false
 	flag.BoolVar(&DEBUG, "debug", DEBUG,
 		"Enable debug mode for verbose terminal messages")
 	flag.Parse()
+	types.DEBUG = DEBUG
 }
 
 func main() {
