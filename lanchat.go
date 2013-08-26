@@ -61,14 +61,7 @@ func main() {
 	// Prompt user for shared secret if not already given
 	// TODO: Use this to get password instead: http://code.google.com/p/go/source/browse/ssh/terminal/terminal.go?repo=crypto#430
 	if SharedSecret == "" {
-		fmt.Printf("AES shared secret (must be of length 16, 24, or 32): ")
-		// TODO: Remove length restriction (pad with zeroes or something)
-		line, err := bufio.NewReader(os.Stdin).ReadString('\n')
-		if err != nil {
-			log.Fatalf("Couldn't get secret from you: %v\n", err)
-		}
-		// Exclude trailing newline
-		SharedSecret = line[:len(line)-1]
+		SharedSecret = getSecret()
 	}
 
 	// Listen for changes to the routing table
@@ -305,4 +298,15 @@ func IncrementString(numStr *string) error {
 	num++
 	*numStr = strconv.Itoa(num)
 	return nil
+}
+
+func getSecret() string {
+	fmt.Printf("AES shared secret (must be of length 16, 24, or 32): ")
+	// TODO: Remove length restriction (pad with zeroes or something)
+	line, err := bufio.NewReader(os.Stdin).ReadString('\n')
+	if err != nil {
+		log.Fatalf("Couldn't get secret from you: %v\n", err)
+	}
+	// Exclude trailing newline
+	return line[:len(line)-1]
 }
