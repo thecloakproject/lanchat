@@ -42,6 +42,7 @@ func NewConnList() *ConnList {
 		AddRemote:      make(chan net.Conn),
 		DeleteRemote:   make(chan net.Conn),
 		WriteToRemotes: make(chan *Cipherstore),
+		writeErrors:    make(chan string),
 	}
 	return &cl
 }
