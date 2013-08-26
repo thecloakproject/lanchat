@@ -268,13 +268,13 @@ func LocalConnHandler(conn net.Conn) {
 			text, isPrefix, err = r.ReadLine()
 			if DEBUG { fmt.Printf("isPrefix == %v\n", isPrefix) }
 			if err != nil {
-				log.Printf("Error reading message from local conn %s: %v\n",
-					conn.RemoteAddr(), err)
 				if err == io.EOF {
 					fmt.Printf("Exiting RemoteConnHandler for %s\n",
 						conn.RemoteAddr())
 					return
 				}
+				log.Printf("Error reading message from local conn %s: %v\n",
+					conn.RemoteAddr(), err)
 				break
 			}
 			if DEBUG { fmt.Printf("text == %s\n", text) }
