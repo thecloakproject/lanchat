@@ -260,11 +260,11 @@ func LocalConnHandler(conn net.Conn) {
 
 // TCPBridge connects to the given server, then calls RemoteConnHandler. Used
 // when *ActAsServer == false.
-func TCPBridge(serverIPandPort string) {
+func TCPBridge(addr string) {
 	// Connect to server
-	conn, err := net.Dial("tcp", serverIPandPort)
+	conn, err := net.Dial("tcp", addr)
 	if err != nil {
-		log.Fatalf("Couldn't connect to %s: %v\n", serverIPandPort, err)
+		log.Fatalf("Couldn't connect to %s: %v\n", addr, err)
 	}
 	RemoteConnHandler(conn)
 }
