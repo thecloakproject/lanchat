@@ -96,7 +96,7 @@ func (list *ConnList) Listen() {
 					cipherstore.Data, cipherstore.Data)
 			}
 			for _, rc := range list.remotes {
-				// Write to every connection... except itself!
+				// Write to every connection except itself
 				if rc != cipherstore.Conn {
 					go list.sendMessage(rc, cipherstore)
 				}
