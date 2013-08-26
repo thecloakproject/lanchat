@@ -71,8 +71,7 @@ func main() {
 		// TODO: Remove length restriction (pad with zeroes or something)
 		line, err := bufio.NewReader(os.Stdin).ReadString('\n')
 		if err != nil {
-			log.Printf("Couldn't get secret from you: %v\n", err)
-			os.Exit(1)
+			log.Fatalf("Couldn't get secret from you: %v\n", err)
 		}
 		// Exclude trailing newline
 		SharedSecret = line[:len(line)-1]
@@ -92,8 +91,7 @@ func main() {
 		go TCPServer(*RemoteListen, *MaxRemoteConns, RemoteConnHandler)
 	} else if *Server == "" {
 		// If this isn't the server and no server specified...
-		fmt.Printf("Must specify server ip:port ('-server xx.yy.zz.ww:9999)'\n")
-		os.Exit(1)
+		log.Fatalf("Must specify server ip:port ('-server xx.yy.zz.ww:9999)'\n")
 	} else {
 		go TCPBridge(*Server)
 	}
@@ -195,8 +193,7 @@ func RemoteConnHandler(conn net.Conn) {
 	// Create new cipher.Block
 	decBlock, err := aes.NewCipher([]byte(SharedSecret))
 	if err != nil {
-		fmt.Printf("Error creating AES cipher for decryption: %v\n", err)
-		os.Exit(1)
+		log.Fatalf("Error creating AES cipher for decryption: %v\n", err)
 	}
 	ciphertext := make([]byte, MAX_MESSAGE_SIZE)
 	for {
@@ -248,8 +245,7 @@ func LocalConnHandler(conn net.Conn) {
 	}
 	encBlock, err := aes.NewCipher([]byte(SharedSecret))
 	if err != nil {
-		fmt.Printf("Error creating AES cipher for encryption: %v\n", err)
-		os.Exit(1)
+		log.Fatalf("Error creating AES cipher for encryption: %v\n", err)
 	}
 	var text []byte
 
@@ -299,8 +295,7 @@ func TCPBridge(serverIPandPort string) {
 	// Connect to server
 	conn, err := net.Dial("tcp", serverIPandPort)
 	if err != nil {
-		log.Printf("Couldn't connect to %s: %v\n", serverIPandPort, err)
-		os.Exit(1)
+		log.Fatalf("Couldn't connect to %s: %v\n", serverIPandPort, err)
 	}
 	RemoteConnHandler(conn)
 }
