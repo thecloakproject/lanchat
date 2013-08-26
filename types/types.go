@@ -118,7 +118,7 @@ func (list *ConnList) sendMessage(c net.Conn, cipherstore *Cipherstore) {
 		// connection won't magically heal itself
 		// and remove it from the connection list
 		list.writeErrors <- errStr
-		DeleteConn(list.remotes, c)
+		list.remotes = DeleteConn(list.remotes, c)
 		fmt.Printf("%s removed from connList\n",
 			c.RemoteAddr())
 	}
