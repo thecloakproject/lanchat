@@ -269,8 +269,7 @@ func LocalConnHandler(conn net.Conn) {
 			if DEBUG { fmt.Printf("isPrefix == %v\n", isPrefix) }
 			if err != nil {
 				if err == io.EOF {
-					fmt.Printf("Exiting RemoteConnHandler for %s\n",
-						conn.RemoteAddr())
+					log.Printf("* %s disconnected\n\n", conn.RemoteAddr())
 					return
 				}
 				log.Printf("Error reading message from local conn %s: %v\n",
