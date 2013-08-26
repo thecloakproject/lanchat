@@ -48,13 +48,7 @@ var (
 	DEBUG = false
 )
 
-var connList = types.ConnList{
-	AddLocal:       make(chan net.Conn),
-	DeleteLocal:    make(chan net.Conn),
-	AddRemote:      make(chan net.Conn),
-	DeleteRemote:   make(chan net.Conn),
-	WriteToRemotes: make(chan *types.Cipherstore),
-}
+var connList = types.NewConnList()
 
 func init() {
 	types.DEBUG = false

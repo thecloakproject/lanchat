@@ -147,3 +147,5 @@ clients:
   * Consider calling it `github.com/thecloakproject/utils{,/crypt}`
 
 * Replace `log.Printf(...); os.Exit(1)` with `log.Fatalf(...)`
+
+* Create `NewConnList()` "constructor" function

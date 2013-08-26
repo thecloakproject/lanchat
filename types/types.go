@@ -35,6 +35,17 @@ type ConnList struct {
 	writeErrors    chan string
 }
 
+func NewConnList() *ConnList {
+	cl := ConnList{
+		AddLocal:       make(chan net.Conn),
+		DeleteLocal:    make(chan net.Conn),
+		AddRemote:      make(chan net.Conn),
+		DeleteRemote:   make(chan net.Conn),
+		WriteToRemotes: make(chan *Cipherstore),
+	}
+	return &cl
+}
+
 func (list *ConnList) Listen() {
 	go func() {
 		for errStr := range list.writeErrors {
