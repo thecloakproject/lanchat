@@ -57,6 +57,8 @@ func (list *ConnList) Listen() {
 	for {
 		if DEBUG {
 			log.Printf("Listen() waiting for new event...\n")
+			log.Printf("Routing table:\nLocals: %+v\nRemotes: %+v\n\n",
+				list.locals, list.remotes)
 		}
 		select {
 		// Handle local connection changes
