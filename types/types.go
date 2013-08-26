@@ -96,27 +96,29 @@ func (list *ConnList) Listen() {
 			for _, rc := range list.remotes {
 				// Write to every connection... except itself!
 				if rc != cipherstore.Conn {
-					go func(c net.Conn) {
-						if DEBUG {
-							log.Printf("Writing '%v' to %s\n",
-								cipherstore.Data, c.RemoteAddr())
-						}
-						_, err := c.Write(cipherstore.Data)
-						if err != nil {
-							errStr := "Error writing ciphertext to %s: %v\n"
-							errStr = fmt.Sprintf(errStr, c.RemoteAddr(), err)
-							// Report error, then assume this
-							// connection won't magically heal itself
-							// and remove it from the connection list
-							list.writeErrors <- errStr
-							DeleteConn(list.remotes, c)
-							fmt.Printf("%s removed from connList\n",
-								c.RemoteAddr())
-						}
-					}(rc)
+					go list.sendMessage(rc, cipherstore)
 				}
 			}
 		}
+	}
+}
+
+func (list *ConnList) sendMessage(c net.Conn, cipherstore *Cipherstore) {
+	if DEBUG {
+		log.Printf("Writing '%v' to %s\n",
+			cipherstore.Data, c.RemoteAddr())
+	}
+	_, err := c.Write(cipherstore.Data)
+	if err != nil {
+		errStr := "Error writing ciphertext to %s: %v\n"
+		errStr = fmt.Sprintf(errStr, c.RemoteAddr(), err)
+		// Report error, then assume this
+		// connection won't magically heal itself
+		// and remove it from the connection list
+		list.writeErrors <- errStr
+		DeleteConn(list.remotes, c)
+		fmt.Printf("%s removed from connList\n",
+			c.RemoteAddr())
 	}
 }
 
