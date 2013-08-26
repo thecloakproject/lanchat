@@ -309,5 +309,6 @@ func getSecret() string {
 		log.Fatalf("Couldn't get secret from you: %v\n", err)
 	}
 	// Exclude trailing newline
+	// TODO: Watch out for trailing "\r\n"
 	return line[:len(line)-1]
 }
