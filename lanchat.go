@@ -155,7 +155,7 @@ func TCPServer(listenIPandPort string, maxConns int, handler func(net.Conn)) err
 			continue
 		}
 
-		log.Printf("* New connection: %s\n\n", conn.RemoteAddr())
+		log.Printf("* New connection: %s\n", conn.RemoteAddr())
 
 		// Handle
 		go func() {
@@ -255,7 +255,7 @@ func LocalConnHandler(conn net.Conn) {
 			if DEBUG { fmt.Printf("isPrefix == %v\n", isPrefix) }
 			if err != nil {
 				if err == io.EOF {
-					log.Printf("* %s disconnected\n\n", conn.RemoteAddr())
+					log.Printf("* Disconnected: %s\n", conn.RemoteAddr())
 					return
 				}
 				log.Printf("Error reading message from local conn %s: %v\n",
