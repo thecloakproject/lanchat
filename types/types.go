@@ -73,7 +73,7 @@ func (list *ConnList) Listen() {
 				log.Printf("Deleting %s from local routing table\n",
 					conn.RemoteAddr())
 			}
-			DeleteConn(list.locals, conn)
+			list.locals = DeleteConn(list.locals, conn)
 
 		// Handle remote connection changes
 		case conn := <-list.AddRemote:
@@ -87,7 +87,7 @@ func (list *ConnList) Listen() {
 				log.Printf("Deleting %s from remote routing table\n",
 					conn.RemoteAddr())
 			}
-			DeleteConn(list.remotes, conn)
+			list.remotes = DeleteConn(list.remotes, conn)
 
 		// Handle writing to remote connections
 		case cipherstore := <-list.WriteToRemotes:
@@ -125,7 +125,7 @@ func (list *ConnList) sendMessage(c net.Conn, cipherstore *Cipherstore) {
 }
 
 // Delete the given net.Conn from the given []net.Conn
-func DeleteConn(connList []net.Conn, c net.Conn) {
+func DeleteConn(connList []net.Conn, c net.Conn) []net.Conn {
 	for ndx, _ := range connList {
 		if connList[ndx] == c {
 			connList = append(connList[:ndx], connList[ndx+1:]...)
@@ -135,4 +135,5 @@ func DeleteConn(connList []net.Conn, c net.Conn) {
 			break
 		}
 	}
+	return connList
 }
