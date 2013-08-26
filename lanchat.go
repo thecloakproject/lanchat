@@ -84,25 +84,7 @@ func main() {
 	}
 
 	// Open port for local telnet client
-	go func() {
-		err := fmt.Errorf("Non-nil error")
-		// Try listening on new port until it works, or fails 10 times
-		for attempts := 0; err != nil && attempts < 10; attempts++ {
-			// Give user command
-			if attempts != 0 {
-				fmt.Printf("Just kidding!")
-			}
-			fmt.Printf("\nNow run\n\n    telnet localhost %s\n\n",
-				*LocalListenPort)
-			fmt.Printf("Type into the telnet window and view the ")
-			fmt.Printf("full conversation in this one.\n\n")
-			err = TCPServer("localhost:"+*LocalListenPort, *MaxLocalConns,
-				LocalConnHandler)
-			IncrementString(LocalListenPort)
-		}
-		panic(fmt.Sprintf("Error converting %s to int: %v\n",
-			LocalListenPort, err))
-	}()
+	go LocalListen()
 
 	// Block forever
 	if DEBUG {
@@ -285,6 +267,25 @@ func TCPBridge(serverIPandPort string) {
 		log.Fatalf("Couldn't connect to %s: %v\n", serverIPandPort, err)
 	}
 	RemoteConnHandler(conn)
+}
+
+func LocalListen() {
+	err := fmt.Errorf("Non-nil error")
+	// Try listening on new port until it works, or fails 10 times
+	for attempts := 0; err != nil && attempts < 10; attempts++ {
+		// Give user command
+		if attempts != 0 {
+			fmt.Printf("Just kidding!")
+		}
+		fmt.Printf("\nNow run\n\n    telnet localhost %s\n\n",
+			*LocalListenPort)
+		fmt.Printf("Type into the telnet window and view the ")
+		fmt.Printf("full conversation in this one.\n\n")
+		err = TCPServer("localhost:"+*LocalListenPort, *MaxLocalConns,
+			LocalConnHandler)
+		IncrementString(LocalListenPort)
+	}
+	panic(fmt.Sprintf("Error converting %s to int: %v\n", LocalListenPort, err))
 }
 
 func IncrementString(numStr *string) error {
